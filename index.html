@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Chat Bot</title>
+    <style>
+        body {
+            background-color: #e9ebee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Verdana', sans-serif;
+            margin: 0;
+        }
+
+        .messenger-box {
+            width: 420px;
+            background-color: #fdfdfd;
+            border: 1px solid #b2b2b2;
+            border-radius: 15px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header-bar {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .conversation-window {
+            padding: 15px;
+            height: 350px;
+            overflow-y: auto;
+            background-color: #f3f3f3;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .message-row {
+            margin-bottom: 12px;
+        }
+
+        .bot-reply {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px 15px 15px 0;
+            align-self: flex-start;
+            max-width: 75%;
+        }
+
+        .user-text {
+            background-color: #d3d3d3;
+            color: black;
+            padding: 8px 12px;
+            border-radius: 15px 15px 0 15px;
+            align-self: flex-end;
+            max-width: 75%;
+        }
+
+        .input-bar {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #c4c4c4;
+            background-color: white;
+        }
+
+        .input-bar input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .input-bar button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="messenger-box">
+        <div class="header-bar">Smart Bot</div>
+        <div class="conversation-window" id="chatWindow">
+        </div>
+        <div class="input-bar">
+            <input type="text" id="userMessage" placeholder="Ask me anything...">
+            <button id="submitMessage">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const predefinedReplies = {
+            "hello": "Hello! How may I assist you today?",
+            "how are you": "I'm just a virtual assistant, but I'm doing great! How about you?",
+            "who are you": "I'm your smart chat bot here to help you!",
+            "goodbye": "Take care! Have a wonderful day ahead!",
+            "default": "I'm sorry, I didn't quite get that. Can you ask something else?"
+        };
+
+        function addChatMessage(message, isBot) {
+            const chatBox = document.getElementById('chatWindow');
+            const newMessage = document.createElement('div');
+            newMessage.classList.add('message-row');
+            newMessage.classList.add(isBot ? 'bot-reply' : 'user-text');
+            newMessage.textContent = message;
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function generateBotReply(userInput) {
+            const normalizedInput = userInput.toLowerCase();
+            return predefinedReplies[normalizedInput] || predefinedReplies['default'];
+        }
+
+        function processUserInput() {
+            const inputField = document.getElementById('userMessage');
+            const userInput = inputField.value.trim();
+
+            if (userInput) {
+                addChatMessage(userInput, false);
+                setTimeout(() => {
+                    const botReply = generateBotReply(userInput);
+                    addChatMessage(botReply, true);
+                }, 600);
+                inputField.value = '';
+            }
+        }
+        document.getElementById('submitMessage').addEventListener('click', processUserInput);
+        document.getElementById('userMessage').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                processUserInput();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
