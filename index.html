@@ -4,87 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Chat Bot</title>
+    <title>Interactive Chat Bot</title>
     <style>
         body {
-            background-color: #e9ebee;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: 'Verdana', sans-serif;
             margin: 0;
         }
 
-        .messenger-box {
-            width: 420px;
-            background-color: #fdfdfd;
-            border: 1px solid #b2b2b2;
-            border-radius: 15px;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        .bot-container {
+            width: 450px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .header-bar {
-            background-color: #28a745;
+        .header {
+            background-color: #007acc;
             color: white;
             padding: 15px;
             text-align: center;
             font-weight: bold;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
         }
 
-        .conversation-window {
+        .chat-area {
             padding: 15px;
-            height: 350px;
+            height: 400px;
             overflow-y: auto;
-            background-color: #f3f3f3;
+            background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
 
-        .message-row {
-            margin-bottom: 12px;
+        .bot-message,
+        .user-message {
+            margin-bottom: 10px;
+            max-width: 75%;
+            padding: 10px;
+            border-radius: 10px;
         }
 
-        .bot-reply {
-            background-color: #28a745;
+        .bot-message {
+            background-color: #007acc;
             color: white;
-            padding: 8px 12px;
-            border-radius: 15px 15px 15px 0;
             align-self: flex-start;
-            max-width: 75%;
         }
 
-        .user-text {
-            background-color: #d3d3d3;
+        .user-message {
+            background-color: #d1d1d1;
             color: black;
-            padding: 8px 12px;
-            border-radius: 15px 15px 0 15px;
             align-self: flex-end;
-            max-width: 75%;
         }
 
-        .input-bar {
+        .input-area {
             display: flex;
             padding: 12px;
-            border-top: 1px solid #c4c4c4;
+            border-top: 1px solid #ddd;
             background-color: white;
         }
 
-        .input-bar input {
+        .input-area input {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ccc;
         }
 
-        .input-bar button {
-            background-color: #28a745;
+        .input-area button {
+            background-color: #007acc;
             color: white;
             border: none;
             padding: 10px 15px;
@@ -92,63 +88,131 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
+        .suggestions {
+            color: #888;
+            font-size: 0.9em;
+            padding: 8px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #007acc;
+            padding: 8px;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="messenger-box">
-        <div class="header-bar">Smart Bot</div>
-        <div class="conversation-window" id="chatWindow">
+    <div class="bot-container">
+        <div class="header">Advanced Chat Bot</div>
+        <div class="chat-area" id="chatContent">
         </div>
-        <div class="input-bar">
-            <input type="text" id="userMessage" placeholder="Ask me anything...">
-            <button id="submitMessage">Send</button>
+        <div class="suggestions">Try asking for the time, a joke, or a motivational quote!</div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your message here...">
+            <button id="sendBtn">Send</button>
         </div>
+        <div id="typingIndicator" class="typing-indicator" style="display:none;">Bot is typing...</div>
     </div>
 
     <script>
-        const predefinedReplies = {
-            "hello": "Hello! How may I assist you today?",
-            "how are you": "I'm just a virtual assistant, but I'm doing great! How about you?",
-            "who are you": "I'm your smart chat bot here to help you!",
-            "goodbye": "Take care! Have a wonderful day ahead!",
-            "default": "I'm sorry, I didn't quite get that. Can you ask something else?"
+        let userName = null;
+        let learningResponses = {};
+
+        const botReplies = {
+            "hello": "Hello there! What's your name?",
+            "time": `Current time is ${new Date().toLocaleTimeString()} ⏰`,
+            "date": `Today's date is ${new Date().toLocaleDateString()} 📅`,
+            "joke": "Why did the scarecrow win an award? Because he was outstanding in his field! 😂",
+            "weather": "It looks sunny outside ☀️! Or so I've heard...",
+            "math": (expression) => `The result is ${eval(expression)} 📊`,
+            "fact": "Did you know? The Eiffel Tower can be 15 cm taller during hot days! 🌞",
+            "quote": "Believe in yourself! Every day is a fresh start 🌟",
+            "name": (name) => `Nice to meet you, ${name}! 😊`,
+            "default": "Hmm, I’m not sure about that. Could you try asking something else?"
         };
 
-        function addChatMessage(message, isBot) {
-            const chatBox = document.getElementById('chatWindow');
+        function addMessageToChat(content, isBot) {
+            const chatContent = document.getElementById('chatContent');
             const newMessage = document.createElement('div');
-            newMessage.classList.add('message-row');
-            newMessage.classList.add(isBot ? 'bot-reply' : 'user-text');
-            newMessage.textContent = message;
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            newMessage.classList.add(isBot ? 'bot-message' : 'user-message');
+            newMessage.textContent = content;
+            chatContent.appendChild(newMessage);
+            chatContent.scrollTop = chatContent.scrollHeight;
         }
 
-        function generateBotReply(userInput) {
-            const normalizedInput = userInput.toLowerCase();
-            return predefinedReplies[normalizedInput] || predefinedReplies['default'];
+        function getBotResponse(input) {
+            input = input.toLowerCase().trim();
+
+            if (learningResponses[input]) return learningResponses[input];
+
+            if (input.includes("my name is")) {
+                const name = input.split("my name is")[1].trim();
+                userName = name.charAt(0).toUpperCase() + name.slice(1);
+                return botReplies["name"](userName);
+            }
+
+            if (input.includes("time")) return botReplies["time"];
+            if (input.includes("date")) return botReplies["date"];
+            if (input.includes("joke")) return botReplies["joke"];
+            if (input.includes("fact")) return botReplies["fact"];
+            if (input.includes("quote")) return botReplies["quote"];
+            if (input.includes("weather")) return botReplies["weather"];
+
+            if (input.match(/[\d\+\-\*\/\(\)\s]+/)) {
+                try {
+                    return botReplies["math"](input);
+                } catch (error) {
+                    return "Sorry, I couldn't calculate that 😬";
+                }
+            }
+
+            if (input.includes("learn")) {
+                const parts = input.split("learn");
+                const phrase = parts[1].split("as")[0].trim();
+                const response = parts[1].split("as")[1].trim();
+                learningResponses[phrase] = response;
+                return `Got it! I'll remember that "${phrase}" means "${response}" 😊`;
+            }
+
+            return botReplies["default"];
         }
 
-        function processUserInput() {
-            const inputField = document.getElementById('userMessage');
-            const userInput = inputField.value.trim();
+        function handleUserInput() {
+            const userMessage = document.getElementById('userInput').value.trim();
+            if (userMessage) {
+                addMessageToChat(userMessage, false);
+                toggleTypingIndicator(true);
 
-            if (userInput) {
-                addChatMessage(userInput, false);
                 setTimeout(() => {
-                    const botReply = generateBotReply(userInput);
-                    addChatMessage(botReply, true);
-                }, 600);
-                inputField.value = '';
+                    const botMessage = getBotResponse(userMessage);
+                    addMessageToChat(botMessage, true);
+                    speak(botMessage);
+                    toggleTypingIndicator(false);
+                }, 500);
+
+                document.getElementById('userInput').value = '';
             }
         }
-        document.getElementById('submitMessage').addEventListener('click', processUserInput);
-        document.getElementById('userMessage').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                processUserInput();
-            }
+
+        function speak(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'en-US';
+            window.speechSynthesis.speak(speech);
+        }
+
+        function toggleTypingIndicator(show) {
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = show ? 'block' : 'none';
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', handleUserInput);
+        document.getElementById('userInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') handleUserInput();
         });
     </script>
 
