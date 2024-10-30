@@ -109,9 +109,8 @@
 
     <div class="bot-container">
         <div class="header">Advanced Chat Bot</div>
-        <div class="chat-area" id="chatContent">
-        </div>
-        <div class="suggestions">Try asking for the time, a joke, or a motivational quote!</div>
+        <div class="chat-area" id="chatContent"></div>
+        <div class="suggestions">Try asking for the time, a joke, weather, or a quote!</div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Type your message here...">
             <button id="sendBtn">Send</button>
@@ -121,6 +120,7 @@
 
     <script>
         let userName = null;
+        let userPreferences = {};
         let learningResponses = {};
 
         const botReplies = {
@@ -132,6 +132,7 @@
             "math": (expression) => `The result is ${eval(expression)} 📊`,
             "fact": "Did you know? The Eiffel Tower can be 15 cm taller during hot days! 🌞",
             "quote": "Believe in yourself! Every day is a fresh start 🌟",
+            "game": startGame,
             "name": (name) => `Nice to meet you, ${name}! 😊`,
             "default": "Hmm, I’m not sure about that. Could you try asking something else?"
         };
@@ -162,6 +163,7 @@
             if (input.includes("fact")) return botReplies["fact"];
             if (input.includes("quote")) return botReplies["quote"];
             if (input.includes("weather")) return botReplies["weather"];
+            if (input.includes("game")) return botReplies["game"]();
 
             if (input.match(/[\d\+\-\*\/\(\)\s]+/)) {
                 try {
@@ -208,6 +210,28 @@
         function toggleTypingIndicator(show) {
             const typingIndicator = document.getElementById('typingIndicator');
             typingIndicator.style.display = show ? 'block' : 'none';
+        }
+
+        function startGame() {
+            const choices = ["rock", "paper", "scissors"];
+            const userChoice = prompt("Let's play Rock-Paper-Scissors! Choose one:");
+            const botChoice = choices[Math.floor(Math.random() * choices.length)];
+
+            if (!choices.includes(userChoice.toLowerCase())) {
+                return "Invalid choice! Try rock, paper, or scissors.";
+            }
+
+            if (userChoice === botChoice) {
+                return `It's a tie! We both chose ${botChoice} 🤝`;
+            } else if (
+                (userChoice === "rock" && botChoice === "scissors") ||
+                (userChoice === "paper" && botChoice === "rock") ||
+                (userChoice === "scissors" && botChoice === "paper")
+            ) {
+                return `You win! 🎉 I chose ${botChoice}.`;
+            } else {
+                return `I win! I chose ${botChoice}. Better luck next time! 😉`;
+            }
         }
 
         document.getElementById('sendBtn').addEventListener('click', handleUserInput);
