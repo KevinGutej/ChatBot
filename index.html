@@ -7,8 +7,8 @@
     <title>Interactive Chat Bot</title>
     <style>
         body {
-            background-color: #f0f2f5;
-            font-family: Arial, sans-serif;
+            background-color: #e0e7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,90 +17,111 @@
         }
 
         .bot-container {
-            width: 450px;
+            width: 480px;
+            max-width: 90%;
             background-color: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
         .header {
-            background-color: #007acc;
+            background: linear-gradient(45deg, #6a4cf8, #007acc);
             color: white;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
+            font-size: 1.2em;
             font-weight: bold;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
 
         .chat-area {
-            padding: 15px;
-            height: 400px;
+            padding: 20px;
+            height: 450px;
             overflow-y: auto;
             background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            gap: 12px;
         }
 
         .bot-message,
         .user-message {
-            margin-bottom: 10px;
             max-width: 75%;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .bot-message {
-            background-color: #007acc;
-            color: white;
+            background: #e1ecff;
+            color: #004085;
             align-self: flex-start;
+            border-top-left-radius: 0;
         }
 
         .user-message {
-            background-color: #d1d1d1;
-            color: black;
+            background: #e3f2fd;
+            color: #004d40;
             align-self: flex-end;
+            border-top-right-radius: 0;
         }
 
         .input-area {
             display: flex;
             padding: 12px;
             border-top: 1px solid #ddd;
-            background-color: white;
+            background-color: #ffffff;
         }
 
         .input-area input {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-area input:focus {
+            border-color: #6a4cf8;
         }
 
         .input-area button {
-            background-color: #007acc;
+            background: linear-gradient(45deg, #6a4cf8, #007acc);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 18px;
             margin-left: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .input-area button:hover {
+            background: linear-gradient(45deg, #5a3be0, #006bb5);
         }
 
         .suggestions {
-            color: #888;
-            font-size: 0.9em;
-            padding: 8px;
-            background-color: #f4f4f4;
+            color: #555;
+            font-size: 0.85em;
+            padding: 10px;
             text-align: center;
+            border-top: 1px solid #ddd;
+            background-color: #f0f3f7;
         }
 
         .typing-indicator {
             font-style: italic;
-            color: #007acc;
+            color: #6a4cf8;
             padding: 8px;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -108,9 +129,9 @@
 <body>
 
     <div class="bot-container">
-        <div class="header">Advanced Chat Bot</div>
+        <div class="header">Interactive Chat Bot</div>
         <div class="chat-area" id="chatContent"></div>
-        <div class="suggestions">Try asking for the time, a joke, weather, or a quote!</div>
+        <div class="suggestions">Try asking for the time, a joke, weather, or say "I'm feeling happy"!</div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Type your message here...">
             <button id="sendBtn">Send</button>
@@ -120,7 +141,7 @@
 
     <script>
         let userName = null;
-        let userPreferences = {};
+        let userPreferences = { mood: null };
         let learningResponses = {};
 
         const botReplies = {
@@ -134,6 +155,7 @@
             "quote": "Believe in yourself! Every day is a fresh start 🌟",
             "game": startGame,
             "name": (name) => `Nice to meet you, ${name}! 😊`,
+            "emotion": respondToMood,
             "default": "Hmm, I’m not sure about that. Could you try asking something else?"
         };
 
@@ -164,6 +186,7 @@
             if (input.includes("quote")) return botReplies["quote"];
             if (input.includes("weather")) return botReplies["weather"];
             if (input.includes("game")) return botReplies["game"]();
+            if (input.includes("sad") || input.includes("happy")) return botReplies["emotion"](input);
 
             if (input.match(/[\d\+\-\*\/\(\)\s]+/)) {
                 try {
@@ -216,22 +239,34 @@
             const choices = ["rock", "paper", "scissors"];
             const userChoice = prompt("Let's play Rock-Paper-Scissors! Choose one:");
             const botChoice = choices[Math.floor(Math.random() * choices.length)];
+            let result;
 
             if (!choices.includes(userChoice.toLowerCase())) {
-                return "Invalid choice! Try rock, paper, or scissors.";
-            }
-
-            if (userChoice === botChoice) {
-                return `It's a tie! We both chose ${botChoice} 🤝`;
+                result = "Invalid choice! Try rock, paper, or scissors.";
+            } else if (userChoice === botChoice) {
+                result = `It's a tie! We both chose ${botChoice} 🤝`;
             } else if (
                 (userChoice === "rock" && botChoice === "scissors") ||
                 (userChoice === "paper" && botChoice === "rock") ||
                 (userChoice === "scissors" && botChoice === "paper")
             ) {
-                return `You win! 🎉 I chose ${botChoice}.`;
+                result = `You win! 🎉 I chose ${botChoice}.`;
             } else {
-                return `I win! I chose ${botChoice}. Better luck next time! 😉`;
+                result = `I win! I chose ${botChoice}. Better luck next time! 😉`;
             }
+
+            return result;
+        }
+
+        function respondToMood(input) {
+            if (input.includes("sad")) {
+                userPreferences.mood = "sad";
+                return "I'm here for you! Sometimes talking helps 😊";
+            } else if (input.includes("happy")) {
+                userPreferences.mood = "happy";
+                return "That's wonderful to hear! Keep smiling 😊";
+            }
+            return "Emotions are natural. Let's chat!";
         }
 
         document.getElementById('sendBtn').addEventListener('click', handleUserInput);
