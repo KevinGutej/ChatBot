@@ -14,6 +14,11 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            transition: background-color 0.5s;
+        }
+
+        .dark-mode {
+            background-color: #1f1f1f;
         }
 
         .bot-container {
@@ -25,6 +30,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: background-color 0.5s;
+        }
+
+        .dark-mode .bot-container {
+            background-color: #333333;
+            color: #ffffff;
         }
 
         .header {
@@ -38,6 +49,17 @@
             border-top-right-radius: 16px;
         }
 
+        .theme-toggle {
+            background-color: transparent;
+            border: none;
+            font-size: 1.1em;
+            color: white;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+
         .chat-area {
             padding: 20px;
             height: 450px;
@@ -47,6 +69,11 @@
             flex-direction: column;
             justify-content: flex-end;
             gap: 12px;
+            transition: background-color 0.5s;
+        }
+
+        .dark-mode .chat-area {
+            background-color: #444444;
         }
 
         .bot-message,
@@ -71,6 +98,16 @@
             color: #004d40;
             align-self: flex-end;
             border-top-right-radius: 0;
+        }
+
+        .dark-mode .bot-message {
+            background-color: #555555;
+            color: #ffffff;
+        }
+
+        .dark-mode .user-message {
+            background-color: #666666;
+            color: #ffffff;
         }
 
         .input-area {
@@ -122,16 +159,31 @@
             color: #6a4cf8;
             padding: 8px;
             font-size: 0.9em;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
     </style>
 </head>
 
 <body>
-
     <div class="bot-container">
-        <div class="header">Interactive Chat Bot</div>
+        <div class="header">
+            Interactive Chat Bot
+            <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
+        </div>
         <div class="chat-area" id="chatContent"></div>
-        <div class="suggestions">Try asking for the time, a joke, weather, or say "I'm feeling happy"!</div>
+        <div class="suggestions">Ask for time, a joke, or say "I'm feeling happy"!</div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Type your message here...">
             <button id="sendBtn">Send</button>
@@ -145,13 +197,13 @@
         let learningResponses = {};
 
         const botReplies = {
-            "hello": "Hello there! What's your name?",
+            "hello": "Hello! What's your name?",
             "time": `Current time is ${new Date().toLocaleTimeString()} ⏰`,
             "date": `Today's date is ${new Date().toLocaleDateString()} 📅`,
             "joke": "Why did the scarecrow win an award? Because he was outstanding in his field! 😂",
             "weather": "It looks sunny outside ☀️! Or so I've heard...",
             "math": (expression) => `The result is ${eval(expression)} 📊`,
-            "fact": "Did you know? The Eiffel Tower can be 15 cm taller during hot days! 🌞",
+            "fact": getRandomFact,
             "quote": "Believe in yourself! Every day is a fresh start 🌟",
             "game": startGame,
             "name": (name) => `Nice to meet you, ${name}! 😊`,
@@ -170,9 +222,7 @@
 
         function getBotResponse(input) {
             input = input.toLowerCase().trim();
-
             if (learningResponses[input]) return learningResponses[input];
-
             if (input.includes("my name is")) {
                 const name = input.split("my name is")[1].trim();
                 userName = name.charAt(0).toUpperCase() + name.slice(1);
@@ -182,7 +232,7 @@
             if (input.includes("time")) return botReplies["time"];
             if (input.includes("date")) return botReplies["date"];
             if (input.includes("joke")) return botReplies["joke"];
-            if (input.includes("fact")) return botReplies["fact"];
+            if (input.includes("fact")) return botReplies["fact"]();
             if (input.includes("quote")) return botReplies["quote"];
             if (input.includes("weather")) return botReplies["weather"];
             if (input.includes("game")) return botReplies["game"]();
@@ -212,14 +262,13 @@
             if (userMessage) {
                 addMessageToChat(userMessage, false);
                 toggleTypingIndicator(true);
-
+                playTypingSound();
                 setTimeout(() => {
                     const botMessage = getBotResponse(userMessage);
                     addMessageToChat(botMessage, true);
                     speak(botMessage);
                     toggleTypingIndicator(false);
                 }, 500);
-
                 document.getElementById('userInput').value = '';
             }
         }
@@ -269,12 +318,31 @@
             return "Emotions are natural. Let's chat!";
         }
 
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function playTypingSound() {
+            const audio = new Audio('https://www.soundjay.com/button/beep-07.mp3');
+            audio.play();
+        }
+
+        function getRandomFact() {
+            const facts = [
+                "Honey never spoils.",
+                "The unicorn is the national animal of Scotland.",
+                "Octopuses have three hearts.",
+                "Bananas are berries, but strawberries aren't.",
+                "Humans share 60% of DNA with bananas!"
+            ];
+            return facts[Math.floor(Math.random() * facts.length)];
+        }
+
         document.getElementById('sendBtn').addEventListener('click', handleUserInput);
         document.getElementById('userInput').addEventListener('keypress', function (event) {
             if (event.key === 'Enter') handleUserInput();
         });
     </script>
-
 </body>
 
 </html>
