@@ -195,13 +195,19 @@
         let userName = null;
         let userPreferences = { mood: null };
         let learningResponses = {};
+        let lastMessage = '';
 
         const botReplies = {
             "hello": "Hello! What's your name?",
+            "how are you": ["I'm doing great, thanks for asking! 😊", "I'm just a bot, but I'm feeling helpful!"],
             "time": `Current time is ${new Date().toLocaleTimeString()} ⏰`,
             "date": `Today's date is ${new Date().toLocaleDateString()} 📅`,
             "joke": "Why did the scarecrow win an award? Because he was outstanding in his field! 😂",
             "weather": "It looks sunny outside ☀️! Or so I've heard...",
+            "favorite color": "My favorite color is blue, just like the sky! 🌈",
+            "favorite food": "I don't eat, but I imagine I'd like pizza! 🍕",
+            "favorite movie": "I think I'd enjoy 'The Matrix', because I love code! 😄",
+            "where are you from": "I was created on the internet, so I guess you could say I'm from everywhere! 🌍",
             "math": (expression) => `The result is ${eval(expression)} 📊`,
             "fact": getRandomFact,
             "quote": "Believe in yourself! Every day is a fresh start 🌟",
@@ -222,6 +228,8 @@
 
         function getBotResponse(input) {
             input = input.toLowerCase().trim();
+            lastMessage = input;
+
             if (learningResponses[input]) return learningResponses[input];
             if (input.includes("my name is")) {
                 const name = input.split("my name is")[1].trim();
@@ -229,14 +237,12 @@
                 return botReplies["name"](userName);
             }
 
-            if (input.includes("time")) return botReplies["time"];
-            if (input.includes("date")) return botReplies["date"];
-            if (input.includes("joke")) return botReplies["joke"];
-            if (input.includes("fact")) return botReplies["fact"]();
-            if (input.includes("quote")) return botReplies["quote"];
-            if (input.includes("weather")) return botReplies["weather"];
-            if (input.includes("game")) return botReplies["game"]();
-            if (input.includes("sad") || input.includes("happy")) return botReplies["emotion"](input);
+            if (botReplies[input]) {
+                if (Array.isArray(botReplies[input])) {
+                    return botReplies[input][Math.floor(Math.random() * botReplies[input].length)];
+                }
+                return typeof botReplies[input] === "function" ? botReplies[input](input) : botReplies[input];
+            }
 
             if (input.match(/[\d\+\-\*\/\(\)\s]+/)) {
                 try {
@@ -268,7 +274,7 @@
                     addMessageToChat(botMessage, true);
                     speak(botMessage);
                     toggleTypingIndicator(false);
-                }, 500);
+                }, getTypingDelay(userMessage));
                 document.getElementById('userInput').value = '';
             }
         }
@@ -314,6 +320,12 @@
             } else if (input.includes("happy")) {
                 userPreferences.mood = "happy";
                 return "That's wonderful to hear! Keep smiling 😊";
+            } else if (input.includes("angry")) {
+                userPreferences.mood = "angry";
+                return "It's okay to feel angry. Take a deep breath. I'm here for you!";
+            } else if (input.includes("excited")) {
+                userPreferences.mood = "excited";
+                return "Yay! What's making you so excited? 😄";
             }
             return "Emotions are natural. Let's chat!";
         }
@@ -336,6 +348,12 @@
                 "Humans share 60% of DNA with bananas!"
             ];
             return facts[Math.floor(Math.random() * facts.length)];
+        }
+
+        function getTypingDelay(message) {
+            const baseDelay = 300;
+            const additionalDelay = Math.min(message.length * 50, 1500);
+            return baseDelay + additionalDelay;
         }
 
         document.getElementById('sendBtn').addEventListener('click', handleUserInput);
