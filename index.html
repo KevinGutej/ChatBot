@@ -173,6 +173,23 @@
                 opacity: 0.5;
             }
         }
+
+        .example-container {
+            position: absolute;
+            right: 10%;
+            top: 50px;
+            background-color: #f0f3f7;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+        }
+
+        .example-select {
+            width: 200px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1em;
+        }
     </style>
 </head>
 
@@ -189,6 +206,22 @@
             <button id="sendBtn">Send</button>
         </div>
         <div id="typingIndicator" class="typing-indicator" style="display:none;">Bot is typing...</div>
+    </div>
+
+    <div class="example-container">
+        <select id="functionExamples" class="example-select" onchange="selectExample()">
+            <option value="">Choose a function...</option>
+            <option value="hello">Greet the bot</option>
+            <option value="time">Ask for current time</option>
+            <option value="date">Ask for today's date</option>
+            <option value="joke">Hear a joke</option>
+            <option value="weather">Ask about the weather</option>
+            <option value="favorite color">Ask the bot's favorite color</option>
+            <option value="favorite food">Ask the bot's favorite food</option>
+            <option value="math">Do a math calculation</option>
+            <option value="fact">Get a random fact</option>
+            <option value="quote">Get an inspirational quote</option>
+        </select>
     </div>
 
     <script>
